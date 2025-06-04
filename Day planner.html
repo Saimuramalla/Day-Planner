@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day Planner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 152px;
+      background-image: linear-gradient(to bottom, #ffffff,#ff0404 );
+    }
+    h1 {
+      text-align: center;
+      text-shadow: 2px 2px 5px rgb(92, 85, 85);
+      color: #000000;
+    }
+    .planner-container {
+      display: flex;
+      gap: 20px;
+    }
+    .task-form {
+      text-align: center;
+      flex: 1;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 2px 2px 5px rgba(92, 85, 85, 0.1);
+    }
+    .task-form input, .task-form textarea, .task-form button {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    .task-form input[type="time"] {
+      padding: 6px;
+    }
+    .task-form button {
+      background-color: #fd0d0d;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .task-form button:hover {
+      background-color: #2db928;
+    }
+    .schedule {
+      text-align: center;
+      flex: 2;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 2px 2px 7px rgba(0,0,0,0.1);
+    }
+    .time-slot {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .time-slot:last-child {
+      border-bottom: none;
+    }
+    .time-slot span {
+      width: 80px;
+      font-weight: bold;
+    }
+    .task {
+      flex: 1;
+      padding: 5px;
+      position: relative;
+    }
+    .task.completed {
+      text-decoration: line-through;
+      color: #888;
+    }
+    .task button {
+      margin-left: 10px;
+      padding: 5px 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .task .complete-btn {
+      background-color: #007bff;
+      color: white;
+    }
+    .task .complete-btn:hover {
+      background-color: #0056b3;
+    }
+    .task .delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    .task .delete-btn:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Day Planner</h1>
+  <div class="planner-container">
+    <div class="task-form">
+      <h2>Add Task</h2>
+      <input type="time" id="task-time" required>
+      <input type="text" id="task-title" placeholder="Task Title" required>
+      <textarea id="task-desc" placeholder="Task Description"></textarea>
+      <button onclick="addTask()">Add Task</button>
+    </div>
+    <div class="schedule">
+      <h2>Today's Schedule</h2>
+      <div id="schedule-list"></div>
+    </div>
+  </div>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      const time = document.getElementById('task-time').value;
+      const title = document.getElementById('task-title').value;
+      const desc = document.getElementById('task-desc').value;
+
+      if (!time || !title) {
+        alert('Please enter a time and title for the task.');
+        return;
+      }
+
+      tasks.push({ time, title, desc, completed: false });
+      tasks.sort((a, b) => a.time.localeCompare(b.time));
+      saveTasks();
+      renderSchedule();
+      document.getElementById('task-time').value = '';
+      document.getElementById('task-title').value = '';
+      document.getElementById('task-desc').value = '';
+    }
+
+    function toggleTask(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderSchedule();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderSchedule();
+    }
+
+    function renderSchedule() {
+      const scheduleList = document.getElementById('schedule-list');
+      scheduleList.innerHTML = '';
+
+      tasks.forEach((task, index) => {
+        const timeSlot = document.createElement('div');
+        timeSlot.className = 'time-slot';
+        timeSlot.innerHTML = `
+          <span>${task.time}</span>
+          <div class="task ${task.completed ? 'completed' : ''}">
+            <strong>${task.title}</strong>
+            ${task.desc ? `<p>${task.desc}</p>` : ''}
+            <button class="complete-btn" onclick="toggleTask(${index})">
+              ${task.completed ? 'Undo' : 'Complete'}
+            </button>
+            <button class="delete-btn" onclick="deleteTask(${index})">Delete</button>
+          </div>
+        `;
+        scheduleList.appendChild(timeSlot);
+      });
+    }
+    renderSchedule();
+  </script>
+</body>
+</html>
